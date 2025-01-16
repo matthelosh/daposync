@@ -1,5 +1,6 @@
 {
   "name": "daposync",
+  "author": "Mat Soleh",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -10,7 +11,34 @@
     "preview": "vite preview",
     "electron:dev": "ELECTRON=true vite --mode=development",
     "electron:build": "ELECTRON=true vite build && electron-builder",
-    "electron:preview": "electron ."
+    "electron:preview": "electron .",
+    "build:win": "vite build && electron-builder --win",
+    "build:mac": "vite build && electron-builder --mac",
+    "build:all": "vite build && electron-builder -mw"
+  },
+  "build": {
+    "appId": "id.my.alsya.raporsd.syncdapo",
+    "productName": "Daposync Rapor SD",
+    "directories": {
+      "output": "releases"
+    },
+    "files": [
+      "dist/**/*",
+      "dist-electron/**/*"
+    ],
+    "mac": {
+      "target": ["dmg","zip"],
+      "category": "public.app-category.productivity"
+    },
+    "win": {
+      "target": ["nsis", "portable"],
+      "icon": "build/icon.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true
+    }
   },
   "dependencies": {
     "https": "^1.0.0",
@@ -27,11 +55,5 @@
     "vite": "^6.0.5",
     "vite-plugin-electron": "^0.29.0",
     "vite-plugin-electron-renderer": "^0.14.6"
-  },
-  "build": {
-    "appId": "id.sch.sdn1bedalisodo.rapor.daposync",
-    "directories": {
-      "output": "dist-electron"
-    }
   }
 }
