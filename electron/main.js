@@ -97,6 +97,11 @@ async function syncRapor(url, payload = {}) {
 }
 
 // IPC Handlers
+
+ipcMain.handle('reload-window', () => {
+    mainWindow.reload();
+})
+
 ipcMain.handle('fetch-data', async (event, { url, method = 'GET', body = null, headers = null }) => {
     // console.log(headers)
     const options = {

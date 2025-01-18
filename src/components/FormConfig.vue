@@ -26,12 +26,17 @@ const simpan = async () => {
   localStorage.setItem("token", token.value);
 
   message.value = "Setting disimpan";
+  await window.api.reload();
   setTimeout(() => {
     emit("close");
   }, 1000);
 };
 
-onMounted(() => {});
+onMounted(() => {
+  ipDapodik.value = localStorage.getItem("ipDapodik") ?? null;
+  token.value = localStorage.getItem("token") ?? null;
+  npsn.value = localStorage.getItem("npsn") ?? null;
+});
 </script>
 
 <template>

@@ -5,6 +5,7 @@ import SplashScreen from "./components/SplashScreen.vue";
 const FormConfig = defineAsyncComponent(() =>
   import("./components/FormConfig.vue")
 );
+const Sekolah = defineAsyncComponent(() => import("./components/Sekolah.vue"));
 const items = ref(null);
 const loading = ref(false);
 const error = ref(null);
@@ -13,7 +14,12 @@ const progress = ref(0);
 const isInitializing = ref(true);
 const initProgress = ref(0);
 const formConfig = ref(null);
-
+const komponen = ref(null);
+const is = computed(() => {
+  return defineAsyncComponent(() =>
+    import("./components/" + komponen.value + ".vue")
+  );
+});
 const showFormConfig = () => {
   formConfig.value = true;
 };
@@ -58,8 +64,9 @@ const initializeApp = async () => {
   isInitializing.value = false;
 };
 
-async function fetchData(endpoint) {
+async function fetchData(endpoint, komp = null) {
   loading.value = true;
+  komponen.value = komp;
   params.value = endpoint;
   try {
     const result = await window.api.invoke("fetch-data", {
@@ -123,28 +130,28 @@ onMounted(async () => {
       <button
         :disabled="loading"
         class="px-4 py-2 border rounded hover:shadow-md hover:shadow-white"
-        @click="fetchData('getSekolah')"
+        @click="fetchData('getSekolah', 'Sekolah')"
       >
         Data Sekolah
       </button>
       <button
         :disabled="loading"
         class="px-4 py-2 border rounded hover:shadow-md hover:shadow-white"
-        @click="fetchData('getRombonganBelajar')"
+        @click="fetchData('getRombonganBelajar', 'Rombel')"
       >
         Data Rombel
       </button>
       <button
         :disabled="loading"
         class="px-4 py-2 border rounded hover:shadow-md hover:shadow-white"
-        @click="fetchData('getGtk')"
+        @click="fetchData('getGtk', 'Gtk')"
       >
         Data PTK
       </button>
       <button
         :disabled="loading"
         class="px-4 py-2 border rounded hover:shadow-md hover:shadow-white"
-        @click="fetchData('getPesertaDidik')"
+        @click="fetchData('getPesertaDidik', 'Siswa')"
       >
         Data Peserta Didik
       </button>
@@ -152,12 +159,12 @@ onMounted(async () => {
     <div class="content" v-if="!loading">
       <div
         class="alert text-orange-400 border p-4 border-orange-400 rounded"
-        v-if="!items"
+        v-if="!komponen"
       >
         Ambil Data Dapodik
       </div>
       <div class="alert text-sky-400 border p-4 border-sky-400 rounded" v-else>
-        <p>{{ items }}</p>
+        <!-- <p>{{ items }}</p>
         <p class="text-center p-4">
           <button
             class="border border-green-400 text-green-400 px-3 py-2 mt-4 rounded hover:shadow-md hover:shadow-teal-500/50"
@@ -166,7 +173,8 @@ onMounted(async () => {
           >
             Kirim Ke Rapor
           </button>
-        </p>
+        </p> -->
+        <component :is="is" :datas="items" @sinkron="syncRapor" />
       </div>
     </div>
     <div v-else class="p-4 roounded border border-pink-400 text-white">

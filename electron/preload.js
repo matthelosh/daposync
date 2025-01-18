@@ -3,6 +3,7 @@ const { contextBridge, ipcRenderer } = require('electron')
 const validChannels = ['fetch-data', 'api-request', 'toMain', 'fromMain', 'sync-rapor']
 
 contextBridge.exposeInMainWorld('api', {
+    reload: () => ipcRenderer.invoke('reload-window'),
     send: (channel, data) => {
         if (validChannels.includes(channel)) {
             ipcRenderer.send(channel, data)
