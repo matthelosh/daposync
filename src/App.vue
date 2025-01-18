@@ -1,6 +1,10 @@
 <script setup>
-import { ref, onMounted } from "vue";
+import { ref, onMounted, defineAsyncComponent, computed } from "vue";
+import { Icon } from "@iconify/vue";
 import SplashScreen from "./components/SplashScreen.vue";
+const FormConfig = defineAsyncComponent(() =>
+  import("./components/FormConfig.vue")
+);
 const items = ref(null);
 const loading = ref(false);
 const error = ref(null);
@@ -8,6 +12,32 @@ const params = ref(null);
 const progress = ref(0);
 const isInitializing = ref(true);
 const initProgress = ref(0);
+const formConfig = ref(null);
+
+const showFormConfig = () => {
+  formConfig.value = true;
+};
+
+const closeFormConfig = () => {
+  formConfig.value = false;
+};
+
+const setting = ref({});
+const checkConfig = () => {
+  const ipDapodik = localStorage.getItem("ipDapodik");
+  const npsn = localStorage.getItem("npsn");
+  const tokenDapodik = localStorage.getItem("token");
+
+  if (!ipDapodik || !npsn || !tokenDapodik) {
+    showFormConfig();
+  } else {
+    setting.value = {
+      ip: localStorage.getItem("ipDapodik"),
+      npsn: localStorage.getItem("npsn"),
+      token: localStorage.getItem("token"),
+    };
+  }
+};
 
 const initializeApp = async () => {
   const steps = [
@@ -33,8 +63,12 @@ async function fetchData(endpoint) {
   params.value = endpoint;
   try {
     const result = await window.api.invoke("fetch-data", {
-      url: `http://192.168.1.11:5774/WebService/${endpoint}?npsn=20518848`,
+      url: `http://${setting.value.ip}:5774/WebService/${endpoint}?npsn=${setting.value.npsn}`,
       method: "GET",
+      headers: {
+        Authorization: `Bearer ${setting.value.token}`,
+        "Content-Type": "application/json",
+      },
     });
     if (result.success) {
       items.value = result.data;
@@ -50,9 +84,10 @@ async function fetchData(endpoint) {
 
 async function syncRapor() {
   loading.value = true;
+
   try {
     const result = await window.api.invoke("sync-rapor", {
-      url: "https://raporsd.test/api/dapo/sekolah/sync",
+      url: `${import.meta.env.VITE_RAPOR_URL}/api/dapo/sekolah/sync`,
       method: "POST",
       body: JSON.stringify(items.value),
     });
@@ -65,17 +100,25 @@ async function syncRapor() {
   }
 }
 
-onMounted(() => {
-  // fetchData();
-  initializeApp();
+onMounted(async () => {
+  await initializeApp();
+  checkConfig();
 });
 </script>
 <template>
   <SplashScreen v-if="isInitializing" :progress="initProgress" />
-  <div class="min-h-screen p-4 bg-gray-900 p-4 text-white">
+  <FormConfig v-if="formConfig" @close="closeFormConfig" />
+  <div class="min-h-screen p-4 bg-gray-900 p-4 text-white relative">
     <h1 class="text-center text-lg tracking-wide">
       Sinkron Dapodik => Rapor SD
     </h1>
+    <button
+      class="absolute right-4 top-2 text-lime-300 flex items-center gap-1"
+      @click="showFormConfig"
+    >
+      <Icon icon="mdi:cog-outline" />
+      Setting
+    </button>
     <nav class="flex items-center justify-center gap-3 my-4">
       <button
         :disabled="loading"
@@ -94,7 +137,7 @@ onMounted(() => {
       <button
         :disabled="loading"
         class="px-4 py-2 border rounded hover:shadow-md hover:shadow-white"
-        @click="fetchData('getPTK')"
+        @click="fetchData('getGtk')"
       >
         Data PTK
       </button>

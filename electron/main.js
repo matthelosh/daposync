@@ -5,10 +5,10 @@ import { app, BrowserWindow, ipcMain } from 'electron'
 import path from 'path'
 import { fileURLToPath } from 'url'
 import fetch from 'node-fetch'
-import https from 'https'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
+
 
 let mainWindow;
 function createWindow () {
@@ -43,15 +43,9 @@ function createWindow () {
 
 // Handle API Request
 async function handleApiRequest(url, options = {}) {
+    // console.log(options)
     try {
-        const defaultOptions = {
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': 'Bearer QteRgcGaC8TGojF'
-            },
-            ...options
-        }
-        const response = await fetch(url, defaultOptions)
+        const response = await fetch(url, options)
         const data = await response.json()
         return { success: true, data }
     } catch (error) {
@@ -77,15 +71,18 @@ async function syncRapor(url, payload = {}) {
 }
 
 // IPC Handlers
-ipcMain.handle('fetch-data', async (event, { url, method = 'GET', body = null }) => {
+ipcMain.handle('fetch-data', async (event, { url, method = 'GET', body = null, headers = null }) => {
+    // console.log(headers)
     const options = {
         method,
-        ...(body && { body: JSON.stringify(body)})
+        ...(body && { body: JSON.stringify(body)}),
+        headers
     }
     return await handleApiRequest(url, options)
 })
 
 ipcMain.handle('sync-rapor', async(event, {url, method = 'POST', body = null }) => {
+    // console.log(url)
     const options = {
         method,
         body
