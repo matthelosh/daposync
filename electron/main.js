@@ -4,7 +4,6 @@ if (process.env.NODE_ENV === 'development') {
 import { app, BrowserWindow, ipcMain } from 'electron'
 import path from 'path'
 import { fileURLToPath } from 'url'
-import fetch from 'node-fetch'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -43,17 +42,34 @@ function createWindow () {
 
 // Handle API Request
 async function handleApiRequest(url, options = {}) {
-    // console.log(options)
+    console.log('\n[API Request]', new Date().toISOString())
+    console.log('URL:', url)
+    console.log('Method:', options.method || 'GET')
+    console.log('Headers:', JSON.stringify(options.headers || {}, null, 2))
+    if (options.body) console.log('Body:', options.body)
+    
     try {
+        console.log('\n[Sending Request...]')
         const response = await fetch(url, options)
+        console.log('Response Status:', response.status)
+        console.log('Response Headers:', JSON.stringify(Object.fromEntries([...response.headers]), null, 2))
+        
         const data = await response.json()
+        console.log('Response Data:', JSON.stringify(data, null, 2))
         return { success: true, data }
     } catch (error) {
+        console.error('\n[API Error]')
+        console.error('Error Message:', error.message)
+        console.error('Stack Trace:', error.stack)
         return { success: false, error: error.message }
     }
 }
 
 async function syncRapor(url, payload = {}) {
+    console.log('\n[Sync Rapor Request]', new Date().toISOString())
+    console.log('URL:', url)
+    console.log('Payload:', JSON.stringify(payload, null, 2))
+    
     try {
         const defaultOptions = {
             headers: {
@@ -61,11 +77,21 @@ async function syncRapor(url, payload = {}) {
             },
             ...payload
         }
-
+        
+        console.log('Options:', JSON.stringify(defaultOptions, null, 2))
+        console.log('\n[Sending Sync Request...]')
+        
         const response = await fetch(url, defaultOptions)
+        console.log('Response Status:', response.status)
+        console.log('Response Headers:', JSON.stringify(Object.fromEntries([...response.headers]), null, 2))
+        
         const data = await response.json()
+        console.log('Response Data:', JSON.stringify(data, null, 2))
         return { success: true, data}
     } catch (error) {
+        console.error('\n[Sync Error]')
+        console.error('Error Message:', error.message)
+        console.error('Stack Trace:', error.stack)
         return { success: false, error: error.message }
     }
 }

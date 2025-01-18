@@ -20,11 +20,18 @@
     "appId": "id.my.alsya.raporsd.syncdapo",
     "productName": "Daposync Rapor SD",
     "directories": {
-      "output": "releases"
+      "output": "releases",
+      "buildResources": "assets"
     },
     "files": [
       "dist/**/*",
-      "dist-electron/**/*"
+      "electron/**/*"
+    ],
+    "extraResources": [
+      {
+        "from": "dist",
+        "to": "app/dist"
+      }
     ],
     "mac": {
       "target": [
@@ -49,7 +56,6 @@
   "dependencies": {
     "@iconify/vue": "^4.3.0",
     "https": "^1.0.0",
-    "node-fetch": "^3.3.2",
     "vue": "^3.5.13"
   },
   "devDependencies": {

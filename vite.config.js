@@ -20,8 +20,17 @@ plugins: [
     ]),
     process.env.ELECTRON === 'true' && renderer()
 ].filter(Boolean),
+base: './',
 build: {
     emptyOutDir: true,
-    outDir: 'dist'
-}
+    outDir: 'dist',
+    assetsDir: 'assets',
+    rollupOptions: {
+        output: {
+            entryFileNames: 'assets/[name]-[hash].js',
+            chunkFileNames: 'assets/[name]-[hash].js',
+            assetFileNames: 'assets/[name]-[hash][extname]'
+        }
+    },
+},
 })
