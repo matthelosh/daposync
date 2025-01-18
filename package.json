@@ -12,7 +12,7 @@
     "electron:dev": "ELECTRON=true vite --mode=development",
     "electron:build": "ELECTRON=true vite build && electron-builder",
     "electron:preview": "electron .",
-    "build:win": "vite build && electron-builder --win",
+    "build:win": "cross-env ELECTRON=true vite build && electron-builder --win",
     "build:mac": "vite build && electron-builder --mac",
     "build:all": "vite build && electron-builder -mw"
   },
