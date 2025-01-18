@@ -25,7 +25,8 @@
     },
     "files": [
       "dist/**/*",
-      "electron/**/*"
+      "electron/**/*",
+      "node_modules/**/*"
     ],
     "extraResources": [
       {
@@ -45,7 +46,13 @@
         "nsis",
         "portable"
       ],
-      "icon": "build/icon.ico"
+      "icon": "build/icon.ico",
+      "extraResources": [
+        {
+          "from": "node_modules/electron/dist/d3dcompiler_47.dll",
+          "to": "."
+        }
+      ]
     },
     "nsis": {
       "oneClick": false,
@@ -61,6 +68,7 @@
   "devDependencies": {
     "@vitejs/plugin-vue": "^5.2.1",
     "autoprefixer": "^10.4.20",
+    "cross-env": "^7.0.3",
     "electron": "^34.0.0",
     "electron-builder": "^25.1.8",
     "postcss": "^8.5.1",
