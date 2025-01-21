@@ -1,6 +1,6 @@
 const { contextBridge, ipcRenderer } = require('electron')
 
-const validChannels = ['fetch-data', 'api-request', 'toMain', 'fromMain', 'sync-rapor']
+const validChannels = ['fetch-data', 'api-request', 'toMain', 'fromMain', 'sync-rapor', 'check-connection']
 
 contextBridge.exposeInMainWorld('api', {
     reload: () => ipcRenderer.invoke('reload-window'),
@@ -22,5 +22,9 @@ contextBridge.exposeInMainWorld('api', {
             return result
         }
         throw new Error(`Invalid channel: ${channel}`)
-    }
+    },
+})
+
+contextBridge.exposeInMainWorld('db', {
+    invoke: (channel, ...args) => ipcRenderer.invoke(channel, ...args)
 })

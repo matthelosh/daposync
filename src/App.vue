@@ -1,11 +1,16 @@
 <script setup>
-import { ref, onMounted, defineAsyncComponent, computed } from "vue";
+import {
+  ref,
+  onMounted,
+  defineAsyncComponent,
+  computed,
+  onBeforeMount,
+} from "vue";
 import { Icon } from "@iconify/vue";
 import SplashScreen from "./components/SplashScreen.vue";
 const FormConfig = defineAsyncComponent(() =>
   import("./components/FormConfig.vue")
 );
-const Sekolah = defineAsyncComponent(() => import("./components/Sekolah.vue"));
 const items = ref(null);
 const loading = ref(false);
 const error = ref(null);
@@ -17,7 +22,7 @@ const formConfig = ref(null);
 const komponen = ref(null);
 const is = computed(() => {
   return defineAsyncComponent(() =>
-    import("./components/" + komponen.value + ".vue")
+    import(/* @vite-ignore */ "./components/" + komponen.value + ".vue")
   );
 });
 const showFormConfig = () => {
@@ -89,16 +94,19 @@ async function fetchData(endpoint, komp = null) {
   }
 }
 
-async function syncRapor() {
+async function syncRapor(entitas = null) {
+  // console.log(entitas);
   loading.value = true;
-
   try {
     const result = await window.api.invoke("sync-rapor", {
-      url: `${import.meta.env.VITE_RAPOR_URL}/api/dapo/sekolah/sync`,
+      url: `${import.meta.env.VITE_RAPOR_URL}/api/dapo/${entitas}/sync?npsn=${
+        setting.value.npsn
+      }`,
       method: "POST",
       body: JSON.stringify(items.value),
     });
-    console.log(result.data);
+    console.log(result);
+    error.value = result.data?.error;
   } catch (err) {
     console.log(err);
   } finally {
@@ -106,6 +114,8 @@ async function syncRapor() {
     loading.value = false;
   }
 }
+
+const isConnected = ref(false);
 
 onMounted(async () => {
   await initializeApp();
@@ -163,22 +173,35 @@ onMounted(async () => {
       >
         Ambil Data Dapodik
       </div>
-      <div class="alert text-sky-400 border p-4 border-sky-400 rounded" v-else>
-        <!-- <p>{{ items }}</p>
-        <p class="text-center p-4">
-          <button
-            class="border border-green-400 text-green-400 px-3 py-2 mt-4 rounded hover:shadow-md hover:shadow-teal-500/50"
-            :disabled="loading"
-            @click="syncRapor()"
-          >
-            Kirim Ke Rapor
-          </button>
-        </p> -->
-        <component :is="is" :datas="items" @sinkron="syncRapor" />
+      <div
+        class="text-sky-400 border p-4 border-sky-400 rounded w-[96vw] overflow-x-auto"
+        v-else
+      >
+        <component
+          v-if="items"
+          :is="is"
+          :datas="items"
+          @sinkron="syncRapor($event, entitas)"
+        />
+        <div v-else class="text-orange-300">
+          <Icon icon="mdi:emoticon-sad-outline" class="mx-auto text-6xl my-4" />
+          <p class="text-center">Maaf! Ada kendala koneksi dengan Dapodik.</p>
+          <p class="text-center">
+            Pastikan IP Dapodik, npsn dan token di Form Setting sesuai.
+          </p>
+        </div>
       </div>
     </div>
     <div v-else class="p-4 roounded border border-pink-400 text-white">
       <p>Loading.. Please wait!</p>
+    </div>
+    <div
+      v-if="error"
+      class="p-3 border mt-4 rounded border-red-300 text-red-300 text-center"
+    >
+      <Icon icon="mdi:alert-outline" class="text-4xl mx-auto" />
+      <p>Sinkron Gagal</p>
+      <p>Keterangan: "{{ error }}"</p>
     </div>
   </div>
 </template>

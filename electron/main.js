@@ -4,6 +4,7 @@ if (process.env.NODE_ENV === 'development') {
 import { app, BrowserWindow, ipcMain } from 'electron'
 import path from 'path'
 import { fileURLToPath } from 'url'
+import db from './database.js'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -42,20 +43,20 @@ function createWindow () {
 
 // Handle API Request
 async function handleApiRequest(url, options = {}) {
-    console.log('\n[API Request]', new Date().toISOString())
-    console.log('URL:', url)
-    console.log('Method:', options.method || 'GET')
-    console.log('Headers:', JSON.stringify(options.headers || {}, null, 2))
+    // console.log('\n[API Request]', new Date().toISOString())
+    // console.log('URL:', url)
+    // console.log('Method:', options.method || 'GET')
+    // console.log('Headers:', JSON.stringify(options.headers || {}, null, 2))
     if (options.body) console.log('Body:', options.body)
     
     try {
-        console.log('\n[Sending Request...]')
+        // console.log('\n[Sending Request...]')
         const response = await fetch(url, options)
-        console.log('Response Status:', response.status)
-        console.log('Response Headers:', JSON.stringify(Object.fromEntries([...response.headers]), null, 2))
+        // console.log('Response Status:', response.status)
+        // console.log('Response Headers:', JSON.stringify(Object.fromEntries([...response.headers]), null, 2))
         
         const data = await response.json()
-        console.log('Response Data:', JSON.stringify(data, null, 2))
+        // console.log('Response Data:', JSON.stringify(data, null, 2))
         return { success: true, data }
     } catch (error) {
         console.error('\n[API Error]')
@@ -66,27 +67,28 @@ async function handleApiRequest(url, options = {}) {
 }
 
 async function syncRapor(url, payload = {}) {
-    console.log('\n[Sync Rapor Request]', new Date().toISOString())
-    console.log('URL:', url)
-    console.log('Payload:', JSON.stringify(payload, null, 2))
+    // console.log('\n[Sync Rapor Request]', new Date().toISOString())
+    // console.log('URL:', url)
+    // console.log('Payload:', JSON.stringify(payload, null, 2))
     
     try {
         const defaultOptions = {
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                'X-CLIENT-TOKEN': '$2y$12$u/RSPd/5FSiJwUz7OBJZKeXrMPl96gHHAaU0kS1FetlEs6JnvBdMO'
             },
             ...payload
         }
         
-        console.log('Options:', JSON.stringify(defaultOptions, null, 2))
-        console.log('\n[Sending Sync Request...]')
+        // console.log('Options:', JSON.stringify(defaultOptions, null, 2))
+        // console.log('\n[Sending Sync Request...]')
         
         const response = await fetch(url, defaultOptions)
-        console.log('Response Status:', response.status)
-        console.log('Response Headers:', JSON.stringify(Object.fromEntries([...response.headers]), null, 2))
+        // console.log('Response Status:', response.status)
+        // console.log('Response Headers:', JSON.stringify(Object.fromEntries([...response.headers]), null, 2))
         
         const data = await response.json()
-        console.log('Response Data:', JSON.stringify(data, null, 2))
+        // console.log('Response Data:', JSON.stringify(data, null, 2))
         return { success: true, data}
     } catch (error) {
         console.error('\n[Sync Error]')
@@ -113,7 +115,7 @@ ipcMain.handle('fetch-data', async (event, { url, method = 'GET', body = null, h
 })
 
 ipcMain.handle('sync-rapor', async(event, {url, method = 'POST', body = null }) => {
-    // console.log(url)
+    console.log(url)
     const options = {
         method,
         body
@@ -122,9 +124,38 @@ ipcMain.handle('sync-rapor', async(event, {url, method = 'POST', body = null }) 
     return result
 } )
 
+ipcMain.handle('check-connection', async(event, { url, method = 'GET'}) => {
+    try {
+
+        const result = await fetch(url, {mode: 'no-cors', method:'GET'})
+        console.log(result.status)
+        return {
+            status: result.status,
+            success: result.statusText
+        }
+    } catch(err) {
+        return {
+            status: 400,
+            success: false
+        }
+    }
+})
+
 ipcMain.on('toMain', (event, data) => {
     mainWindow.webContents.send('fromMain', 'Received in main: ' + data)
 })
+
+// Database Handler
+ipcMain.handle('database', async(event, queryObjects, params) => {
+    try {
+        const statement = db.prepare(query)
+        return statement.run(params)
+    } catch (error) {
+        console.error('Database Error:', error)
+        throw error
+    }
+})
+
 
 app.whenReady().then(() => {
     createWindow()
@@ -139,5 +170,9 @@ app.on('window-all-closed', () => {
     if (process.platform !== 'darwin') {
         app.quit()
     }
+})
+
+app.on('will-quit', () => {
+    db.close()
 })
 

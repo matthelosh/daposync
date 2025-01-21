@@ -1,6 +1,6 @@
 <script setup>
 defineProps({ datas: Object });
-defineEmits(["sinkron"]);
+const emit = defineEmits(["sinkron"]);
 </script>
 
 <template>
@@ -35,7 +35,7 @@ defineEmits(["sinkron"]);
     <p class="text-center p-4">
       <button
         class="border border-green-400 text-green-400 px-3 py-2 mt-4 rounded hover:shadow-md hover:shadow-teal-500/50"
-        @click="sinkron"
+        @click="emit('sinkron', 'rombel')"
       >
         Kirim Ke Rapor
       </button>
